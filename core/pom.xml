@@ -179,6 +179,14 @@
             <artifactId>log4j-1.2-api</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!--    paimon    -->
+        <dependency>
+            <groupId>org.apache.paimon</groupId>
+            <artifactId>paimon-bundle</artifactId>
+            <version>0.5-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
     <build>

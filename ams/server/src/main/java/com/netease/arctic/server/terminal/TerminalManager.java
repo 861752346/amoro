@@ -131,6 +131,9 @@ public class TerminalManager {
   private String catalogConnectorType(CatalogMeta catalogMeta) {
     String catalogType = catalogMeta.getCatalogType();
     String tableFormats = catalogMeta.getCatalogProperties().get(CatalogMetaProperties.TABLE_FORMATS);
+    if (StringUtils.containsIgnoreCase(tableFormats, TableFormat.PAIMON.name())) {
+      return "paimon";
+    }
     if (catalogType.equalsIgnoreCase(CatalogType.AMS.name())) {
       return "arctic";
     } else if (catalogType.equalsIgnoreCase(CatalogType.HIVE.name()) ||

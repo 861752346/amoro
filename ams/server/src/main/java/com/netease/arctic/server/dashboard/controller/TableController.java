@@ -58,6 +58,7 @@ import com.netease.arctic.server.dashboard.utils.TableStatCollector;
 import com.netease.arctic.server.table.ServerTableIdentifier;
 import com.netease.arctic.server.table.TableService;
 import com.netease.arctic.server.utils.Configurations;
+import com.netease.arctic.table.ATable;
 import com.netease.arctic.table.ArcticTable;
 import com.netease.arctic.table.KeyedTable;
 import com.netease.arctic.table.PrimaryKeySpec;
@@ -129,7 +130,12 @@ public class TableController {
         "catalog.database.tableName can not be empty in any element");
     Preconditions.checkState(tableService.catalogExist(catalog), "invalid catalog!");
 
-    ArcticTable table = tableService.loadTable(ServerTableIdentifier.of(catalog, database, tableMame));
+    ATable aTable = tableService.loadTable(ServerTableIdentifier.of(catalog, database, tableMame));
+    if (aTable.format() == TableFormat.PAIMON) {
+      ctx.json(OkResponse.ok());
+      return;
+    }
+    ArcticTable table = (ArcticTable) aTable.originalTable();
     // set basic info
     TableBasicInfo tableBasicInfo = getTableBasicInfo(table);
     ServerTableMeta serverTableMeta = getServerTableMeta(table);
@@ -354,7 +360,12 @@ public class TableController {
     Integer page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1);
     Integer pageSize = ctx.queryParamAsClass("pageSize", Integer.class).getOrDefault(20);
 
-    ArcticTable arcticTable = tableService.loadTable(ServerTableIdentifier.of(catalog, db, table));
+    ATable aTable = tableService.loadTable(ServerTableIdentifier.of(catalog, db, table));
+    if (aTable.format() == TableFormat.PAIMON) {
+      ctx.json(OkResponse.ok());
+      return;
+    }
+    ArcticTable arcticTable = (ArcticTable) aTable.originalTable();
     List<PartitionBaseInfo> partitionBaseInfos = tableDescriptor.getTablePartition(arcticTable);
     int offset = (page - 1) * pageSize;
     PageResult<PartitionBaseInfo, PartitionBaseInfo> amsPageResult = PageResult.of(partitionBaseInfos,
@@ -373,7 +384,12 @@ public class TableController {
 
     Integer page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1);
     Integer pageSize = ctx.queryParamAsClass("pageSize", Integer.class).getOrDefault(20);
-    ArcticTable arcticTable = tableService.loadTable(ServerTableIdentifier.of(catalog, db, table));
+    ATable aTable = tableService.loadTable(ServerTableIdentifier.of(catalog, db, table));
+    if (aTable.format() == TableFormat.PAIMON) {
+      ctx.json(OkResponse.ok());
+      return;
+    }
+    ArcticTable arcticTable = (ArcticTable) aTable.originalTable();
     List<PartitionFileBaseInfo> partitionFileBaseInfos = tableDescriptor.getTableFile(arcticTable, partition,
         page * pageSize);
     int offset = (page - 1) * pageSize;

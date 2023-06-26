@@ -22,6 +22,7 @@ import com.netease.arctic.server.optimizing.OptimizingStatus;
 import com.netease.arctic.server.optimizing.plan.OptimizingEvaluator;
 import com.netease.arctic.server.table.TableManager;
 import com.netease.arctic.server.table.TableRuntime;
+import com.netease.arctic.table.ATable;
 import com.netease.arctic.table.ArcticTable;
 
 /**
@@ -39,7 +40,7 @@ public class TableRuntimeRefreshExecutor extends BaseTableExecutor {
 
   @Override
   protected boolean enabled(TableRuntime tableRuntime) {
-    return true;
+    return  loadTable(tableRuntime).originalTable() instanceof ArcticTable;
   }
 
   protected long getNextExecutingTime(TableRuntime tableRuntime) {
@@ -48,7 +49,7 @@ public class TableRuntimeRefreshExecutor extends BaseTableExecutor {
 
   @Override
   public void handleStatusChanged(TableRuntime tableRuntime, OptimizingStatus originalStatus) {
-    tryEvaluatingPendingInput(tableRuntime, loadTable(tableRuntime));
+    tryEvaluatingPendingInput(tableRuntime, (ArcticTable) loadTable(tableRuntime).originalTable());
   }
 
   private void tryEvaluatingPendingInput(TableRuntime tableRuntime, ArcticTable table) {
@@ -66,14 +67,12 @@ public class TableRuntimeRefreshExecutor extends BaseTableExecutor {
   @Override
   public void execute(TableRuntime tableRuntime) {
     try {
-      long snapshotBeforeRefresh = tableRuntime.getCurrentSnapshotId();
-      long changeSnapshotBeforeRefresh = tableRuntime.getCurrentChangeSnapshotId();
-      ArcticTable table = loadTable(tableRuntime);
+      ATable.Snapshot currentSnapshot = tableRuntime.getCurrentSnapshot();
+      ATable table = loadTable(tableRuntime);
       tableRuntime.refresh(table);
-      if (snapshotBeforeRefresh != tableRuntime.getCurrentSnapshotId() ||
-          changeSnapshotBeforeRefresh != tableRuntime.getCurrentChangeSnapshotId()) {
+      if (!currentSnapshot.equals(tableRuntime.getCurrentSnapshot())) {
         if (tableRuntime.isOptimizingEnabled()) {
-          tryEvaluatingPendingInput(tableRuntime, table);
+          tryEvaluatingPendingInput(tableRuntime, (ArcticTable) table.originalTable());
         }
       }
     } catch (Throwable throwable) {

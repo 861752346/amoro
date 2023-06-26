@@ -1,5 +1,6 @@
 package com.netease.arctic.server.dashboard;
 
+import com.netease.arctic.ams.api.TableFormat;
 import com.netease.arctic.data.DataFileType;
 import com.netease.arctic.data.FileNameRules;
 import com.netease.arctic.server.dashboard.model.AMSDataFileInfo;
@@ -16,6 +17,7 @@ import com.netease.arctic.server.persistence.mapper.OptimizingMapper;
 import com.netease.arctic.server.persistence.mapper.TableMetaMapper;
 import com.netease.arctic.server.table.ServerTableIdentifier;
 import com.netease.arctic.server.table.TableService;
+import com.netease.arctic.table.ATable;
 import com.netease.arctic.table.ArcticTable;
 import com.netease.arctic.table.TableIdentifier;
 import com.netease.arctic.trace.SnapshotSummary;
@@ -73,7 +75,11 @@ public class ServerTableDescriptor extends PersistentBase {
 
   public List<TransactionsOfTable> getTransactions(ServerTableIdentifier tableIdentifier) {
     List<TransactionsOfTable> transactionsOfTables = new ArrayList<>();
-    ArcticTable arcticTable = tableService.loadTable(tableIdentifier);
+    ATable aTable = tableService.loadTable(tableIdentifier);
+    if (aTable.format() == TableFormat.PAIMON) {
+      return null;
+    }
+    ArcticTable arcticTable = (ArcticTable) aTable.originalTable();
     List<Table> tables = new ArrayList<>();
     if (arcticTable.isKeyedTable()) {
       tables.add(arcticTable.asKeyedTable().changeTable());
@@ -112,7 +118,11 @@ public class ServerTableDescriptor extends PersistentBase {
 
   public List<AMSDataFileInfo> getTransactionDetail(ServerTableIdentifier tableIdentifier, long transactionId) {
     List<AMSDataFileInfo> result = new ArrayList<>();
-    ArcticTable arcticTable = tableService.loadTable(tableIdentifier);
+    ATable aTable = tableService.loadTable(tableIdentifier);
+    if (aTable.format() == TableFormat.PAIMON) {
+      return null;
+    }
+    ArcticTable arcticTable = (ArcticTable) aTable.originalTable();
     Snapshot snapshot;
     if (arcticTable.isKeyedTable()) {
       snapshot = arcticTable.asKeyedTable().changeTable().snapshot(transactionId);
@@ -167,7 +177,11 @@ public class ServerTableDescriptor extends PersistentBase {
 
   public List<DDLInfo> getTableOperations(ServerTableIdentifier tableIdentifier) {
     List<DDLInfo> result = new ArrayList<>();
-    ArcticTable arcticTable = tableService.loadTable(tableIdentifier);
+    ATable aTable = tableService.loadTable(tableIdentifier);
+    if (aTable.format() == TableFormat.PAIMON) {
+      return null;
+    }
+    ArcticTable arcticTable = (ArcticTable) aTable.originalTable();
     Table table;
     if (arcticTable.isKeyedTable()) {
       table = arcticTable.asKeyedTable().baseTable();

@@ -4,11 +4,11 @@ import com.netease.arctic.ams.api.CatalogMeta;
 import com.netease.arctic.ams.api.TableIdentifier;
 import com.netease.arctic.server.persistence.PersistentBase;
 import com.netease.arctic.server.persistence.mapper.CatalogMetaMapper;
-import com.netease.arctic.table.ArcticTable;
 
+import com.netease.arctic.table.ATable;
 import java.util.List;
 
-public abstract class ServerCatalog extends PersistentBase {
+public abstract class ServerCatalog<T> extends PersistentBase {
 
   private volatile CatalogMeta metadata;
 
@@ -40,5 +40,5 @@ public abstract class ServerCatalog extends PersistentBase {
 
   public abstract List<TableIdentifier> listTables(String database);
 
-  public abstract ArcticTable loadTable(String database, String tableName);
+  public abstract ATable<T> loadTable(String database, String tableName);
 }

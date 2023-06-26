@@ -51,6 +51,12 @@ public class SparkContextUtil {
           String property = properties.get(key);
           sparkConf.put("spark.sql.catalog." + catalog + "." + key, property);
         }
+      } else if ("paimon".equalsIgnoreCase(connector)) {
+        sparkConf.put("spark.sql.catalog." + catalog, org.apache.paimon.spark.SparkCatalog.class.getName());
+
+        Map<String, String> properties =
+            TerminalSessionFactory.SessionConfigOptions.getCatalogProperties(sessionConfig, catalog);
+          sparkConf.put("spark.sql.catalog." + catalog + "." + "warehouse", properties.get("warehouse"));
       } else {
         String sparkCatalogPrefix = "spark.sql.catalog." + catalog;
         String catalogClassName = ArcticSparkCatalog.class.getName();

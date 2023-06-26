@@ -21,6 +21,7 @@ import com.netease.arctic.server.persistence.mapper.CatalogMetaMapper;
 import com.netease.arctic.server.persistence.mapper.TableMetaMapper;
 import com.netease.arctic.server.table.blocker.TableBlocker;
 import com.netease.arctic.server.utils.Configurations;
+import com.netease.arctic.table.ATable;
 import com.netease.arctic.table.ArcticTable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.iceberg.relocated.com.google.common.annotations.VisibleForTesting;
@@ -158,7 +159,7 @@ public class DefaultTableService extends StatedPersistentBase implements TableSe
 
     InternalCatalog catalog = getInternalCatalog(catalogName);
     ServerTableIdentifier tableIdentifier = catalog.createTable(tableMeta);
-    ArcticTable table = catalog.loadTable(tableIdentifier.getDatabase(), tableIdentifier.getTableName());
+    ATable table = catalog.loadTable(tableIdentifier.getDatabase(), tableIdentifier.getTableName());
     TableRuntime tableRuntime = new TableRuntime(tableIdentifier, this, table.properties());
     tableRuntimeMap.put(tableIdentifier, tableRuntime);
     if (headHandler != null) {
@@ -197,7 +198,7 @@ public class DefaultTableService extends StatedPersistentBase implements TableSe
   }
 
   @Override
-  public ArcticTable loadTable(ServerTableIdentifier tableIdentifier) {
+  public ATable loadTable(ServerTableIdentifier tableIdentifier) {
     checkStarted();
     return getServerCatalog(tableIdentifier.getCatalog())
         .loadTable(tableIdentifier.getDatabase(), tableIdentifier.getTableName());
@@ -352,7 +353,7 @@ public class DefaultTableService extends StatedPersistentBase implements TableSe
 
   @VisibleForTesting
   void exploreExternalCatalog() {
-    for (ExternalCatalog externalCatalog : externalCatalogMap.values()) {
+    for (ExternalCatalog<?> externalCatalog : externalCatalogMap.values()) {
       try {
         Set<TableIdentity> tableIdentifiers = externalCatalog.listTables().stream()
             .map(TableIdentity::new)
@@ -448,7 +449,7 @@ public class DefaultTableService extends StatedPersistentBase implements TableSe
   private void handleTableRuntimeAdded(ExternalCatalog externalCatalog, TableIdentity tableIdentity) {
     ServerTableIdentifier tableIdentifier =
         externalCatalog.getServerTableIdentifier(tableIdentity.getDatabase(), tableIdentity.getTableName());
-    ArcticTable table = externalCatalog.loadTable(
+    ATable table = externalCatalog.loadTable(
         tableIdentifier.getDatabase(),
         tableIdentifier.getTableName());
     TableRuntime tableRuntime = new TableRuntime(tableIdentifier, this, table.properties());

@@ -7,6 +7,7 @@ import com.netease.arctic.server.table.TableConfiguration;
 import com.netease.arctic.server.table.TableManager;
 import com.netease.arctic.server.table.TableRuntime;
 import com.netease.arctic.server.table.TableRuntimeMeta;
+import com.netease.arctic.table.ATable;
 import com.netease.arctic.table.ArcticTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +39,13 @@ public abstract class BaseTableExecutor extends RuntimeHandlerChain {
   protected void initHandler(List<TableRuntimeMeta> tableRuntimeMetaList) {
     tableRuntimeMetaList.stream()
         .map(tableRuntimeMeta -> tableRuntimeMeta.getTableRuntime())
-        .filter(tableRuntime -> enabled(tableRuntime))
+        // .filter(tableRuntime -> enabled(tableRuntime))
         .forEach(tableRuntime ->
             executor.schedule(
-                () -> executeTask(tableRuntime),
+                () -> {
+                  if (!enabled(tableRuntime)) return;
+                  executeTask(tableRuntime);
+                },
                 getStartDelay(),
                 TimeUnit.MILLISECONDS));
     logger.info("Table executor {} initialized", getClass().getSimpleName());
@@ -97,7 +101,7 @@ public abstract class BaseTableExecutor extends RuntimeHandlerChain {
   }
 
   @Override
-  public void handleTableAdded(ArcticTable table, TableRuntime tableRuntime) {
+  public void handleTableAdded(ATable table, TableRuntime tableRuntime) {
     scheduleIfNecessary(tableRuntime, getStartDelay());
   }
 
@@ -110,7 +114,7 @@ public abstract class BaseTableExecutor extends RuntimeHandlerChain {
     return START_DELAY;
   }
 
-  protected ArcticTable loadTable(TableRuntime tableRuntime) {
+  protected ATable loadTable(TableRuntime tableRuntime) {
     return tableManager.loadTable(tableRuntime.getTableIdentifier());
   }
 }

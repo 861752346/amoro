@@ -22,6 +22,11 @@ public class CatalogBuilder {
     Set<TableFormat> tableFormats = CatalogUtil.tableFormats(catalogMeta);
     TableFormat tableFormat = tableFormats.iterator().next();
 
+    //test
+    if (tableFormat == TableFormat.PAIMON) {
+      return new PaimonCatalogImpl(catalogMeta);
+    }
+
     switch (type) {
       case CATALOG_TYPE_HADOOP:
         Preconditions.checkArgument(tableFormat.equals(TableFormat.ICEBERG),

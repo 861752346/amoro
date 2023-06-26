@@ -330,7 +330,7 @@ public class TestSnapshotExpire extends ExecutorTestBase {
     // mock tableRuntime which has optimizing task not committed
     long optimizeSnapshotId = table.currentSnapshot().snapshotId();
     Mockito.when(tableRuntime.getOptimizingStatus()).thenReturn(OptimizingStatus.COMMITTING);
-    Mockito.when(tableRuntime.getCurrentSnapshotId()).thenReturn(optimizeSnapshotId);
+    Mockito.when(tableRuntime.getCurrentSnapshot()).thenReturn(optimizeSnapshotId);
     HashSet<Snapshot> expectedSnapshots = new HashSet<>();
     expectedSnapshots.add(table.currentSnapshot());
 

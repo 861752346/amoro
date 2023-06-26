@@ -3,6 +3,7 @@ package com.netease.arctic.server.table.executor;
 import com.netease.arctic.server.optimizing.OptimizingStatus;
 import com.netease.arctic.server.table.TableManager;
 import com.netease.arctic.server.table.TableRuntime;
+import com.netease.arctic.table.ATable;
 import com.netease.arctic.table.ArcticTable;
 
 import java.util.Optional;
@@ -22,7 +23,8 @@ public class OptimizingCommitExecutor extends BaseTableExecutor {
 
   @Override
   protected boolean enabled(TableRuntime tableRuntime) {
-    return tableRuntime.getOptimizingStatus() == OptimizingStatus.COMMITTING;
+    return tableRuntime.getOptimizingStatus() == OptimizingStatus.COMMITTING  &&
+        loadTable(tableRuntime).originalTable() instanceof ArcticTable;
   }
 
   @Override
@@ -38,7 +40,7 @@ public class OptimizingCommitExecutor extends BaseTableExecutor {
   }
 
   @Override
-  public void handleTableAdded(ArcticTable table, TableRuntime tableRuntime) {
+  public void handleTableAdded(ATable table, TableRuntime tableRuntime) {
   }
 
   protected long getStartDelay() {

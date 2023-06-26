@@ -11,6 +11,7 @@ import com.netease.arctic.server.persistence.converter.Long2TsConverter;
 import com.netease.arctic.server.persistence.converter.Map2StringConverter;
 import com.netease.arctic.server.persistence.converter.Object2ByteArrayConvert;
 import com.netease.arctic.server.table.ServerTableIdentifier;
+import com.netease.arctic.table.ATable;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
@@ -32,9 +33,10 @@ public interface OptimizingMapper {
   void deleteOptimizingProcessBefore(@Param("tableId") long tableId, @Param("time") long time);
 
   @Insert("INSERT INTO table_optimizing_process(table_id, catalog_name, db_name, table_name ,process_id," +
-      " target_snapshot_id, target_change_snapshot_id, status, optimizing_type, plan_time, summary, from_sequence," +
+      " from_snapshot, status, optimizing_type, plan_time, summary, from_sequence," +
       " to_sequence) VALUES (#{table.id}, #{table.catalog}," +
-      " #{table.database}, #{table.tableName}, #{processId}, #{targetSnapshotId}, #{targetChangeSnapshotId}," +
+      " #{table.database}, #{table.tableName}, #{processId}, " +
+      " #{fromSnapshot, typeHandler=com.netease.arctic.server.persistence.converter.Object2ByteArrayConvert}, " +
       " #{status}, #{optimizingType}," +
       " #{planTime, typeHandler=com.netease.arctic.server.persistence.converter.Long2TsConverter}," +
       " #{summary, typeHandler=com.netease.arctic.server.persistence.converter.JsonSummaryConverter}," +
@@ -44,8 +46,7 @@ public interface OptimizingMapper {
   void insertOptimizingProcess(
       @Param("table") ServerTableIdentifier tableIdentifier,
       @Param("processId") long processId,
-      @Param("targetSnapshotId") long targetSnapshotId,
-      @Param("targetChangeSnapshotId") long targetChangeSnapshotId,
+      @Param("fromSnapshot") ATable.Snapshot formSnapshot,
       @Param("status") OptimizingProcess.Status status,
       @Param("optimizingType") OptimizingType optimizingType,
       @Param("planTime") long planTime,
@@ -66,31 +67,30 @@ public interface OptimizingMapper {
       @Param("summary") MetricsSummary summary,
       @Param("failedReason") String failedReason);
 
-  @Select("SELECT process_id, table_id, catalog_name, db_name, table_name, target_snapshot_id," +
-      " target_change_snapshot_id, status," +
-      " optimizing_type, plan_time, end_time, fail_reason, summary FROM table_optimizing_process" +
-      " WHERE catalog_name = #{catalogName} AND db_name = #{dbName} AND table_name = #{tableName}")
-  @Results({
-      @Result(property = "processId", column = "process_id"),
-      @Result(property = "tableId", column = "table_id"),
-      @Result(property = "catalogName", column = "catalog_name"),
-      @Result(property = "dbName", column = "db_name"),
-      @Result(property = "tableName", column = "table_name"),
-      @Result(property = "targetSnapshotId", column = "target_snapshot_id"),
-      @Result(property = "targetChangeSnapshotId", column = "target_change_snapshot_id"),
-      @Result(property = "status", column = "status"),
-      @Result(property = "optimizingType", column = "optimizing_type"),
-      @Result(property = "planTime", column = "plan_time", typeHandler = Long2TsConverter.class),
-      @Result(property = "endTime", column = "end_time", typeHandler = Long2TsConverter.class),
-      @Result(property = "failReason", column = "fail_reason"),
-      @Result(property = "summary", column = "summary", typeHandler = JsonSummaryConverter.class)
-  })
-  List<TableOptimizingProcess> selectOptimizingProcessesByTable(
-      @Param("catalogName") String catalogName, @Param(
-      "dbName") String dbName, @Param("tableName") String tableName);
+  // @Select("SELECT process_id, table_id, catalog_name, db_name, table_name, target_snapshot_id," +
+  //     " target_change_snapshot_id, status," +
+  //     " optimizing_type, plan_time, end_time, fail_reason, summary FROM table_optimizing_process" +
+  //     " WHERE catalog_name = #{catalogName} AND db_name = #{dbName} AND table_name = #{tableName}")
+  // @Results({
+  //     @Result(property = "processId", column = "process_id"),
+  //     @Result(property = "tableId", column = "table_id"),
+  //     @Result(property = "catalogName", column = "catalog_name"),
+  //     @Result(property = "dbName", column = "db_name"),
+  //     @Result(property = "tableName", column = "table_name"),
+  //     @Result(property = "fromSnapshot", column = "target_snapshot"),
+  //     @Result(property = "status", column = "status"),
+  //     @Result(property = "optimizingType", column = "optimizing_type"),
+  //     @Result(property = "planTime", column = "plan_time", typeHandler = Long2TsConverter.class),
+  //     @Result(property = "endTime", column = "end_time", typeHandler = Long2TsConverter.class),
+  //     @Result(property = "failReason", column = "fail_reason"),
+  //     @Result(property = "summary", column = "summary", typeHandler = JsonSummaryConverter.class)
+  // })
+  // List<TableOptimizingProcess> selectOptimizingProcessesByTable(
+  //     @Param("catalogName") String catalogName, @Param(
+  //     "dbName") String dbName, @Param("tableName") String tableName);
 
-  @Select("SELECT a.process_id, a.table_id, a.catalog_name, a.db_name, a.table_name, a.target_snapshot_id," +
-      " a.target_change_snapshot_id, a.status, a.optimizing_type, a.plan_time, a.end_time," +
+  @Select("SELECT a.process_id, a.table_id, a.catalog_name, a.db_name, a.table_name, a.from_snapshot," +
+      " a.status, a.optimizing_type, a.plan_time, a.end_time," +
       " a.fail_reason, a.summary FROM table_optimizing_process a" +
       " INNER JOIN table_identifier b ON a.table_id = b.table_id" +
       " WHERE a.catalog_name = #{catalogName} AND a.db_name = #{dbName} AND a.table_name = #{tableName}" +
@@ -102,8 +102,7 @@ public interface OptimizingMapper {
       @Result(property = "catalogName", column = "catalog_name"),
       @Result(property = "dbName", column = "db_name"),
       @Result(property = "tableName", column = "table_name"),
-      @Result(property = "targetSnapshotId", column = "target_snapshot_id"),
-      @Result(property = "targetChangeSnapshotId", column = "target_change_snapshot_id"),
+      @Result(property = "fromSnapshot", column = "from_snapshot", typeHandler = Object2ByteArrayConvert.class),
       @Result(property = "status", column = "status"),
       @Result(property = "optimizingType", column = "optimizing_type"),
       @Result(property = "planTime", column = "plan_time", typeHandler = Long2TsConverter.class),

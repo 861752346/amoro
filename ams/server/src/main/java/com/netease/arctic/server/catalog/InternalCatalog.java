@@ -11,8 +11,9 @@ import com.netease.arctic.server.persistence.mapper.TableBlockerMapper;
 import com.netease.arctic.server.persistence.mapper.TableMetaMapper;
 import com.netease.arctic.server.table.ServerTableIdentifier;
 import com.netease.arctic.server.table.TableMetadata;
+import com.netease.arctic.table.ArcticTable;
 
-public abstract class InternalCatalog extends ServerCatalog {
+public abstract class InternalCatalog extends ServerCatalog<ArcticTable> {
 
   protected InternalCatalog(CatalogMeta metadata) {
     super(metadata);
