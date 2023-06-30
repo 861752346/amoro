@@ -1,5 +1,6 @@
 package com.netease.arctic.server.optimizing;
 
+import com.netease.arctic.table.ATable;
 import java.util.Map;
 
 public interface OptimizingProcess {
@@ -10,9 +11,7 @@ public interface OptimizingProcess {
 
   boolean isClosed();
 
-  long getTargetSnapshotId();
-  
-  long getTargetChangeSnapshotId();
+  ATable.Snapshot getFromSnapshot();
 
   long getPlanTime();
 
@@ -27,10 +26,6 @@ public interface OptimizingProcess {
   void commit();
 
   MetricsSummary getSummary();
-
-  Map<String, Long> getFromSequence();
-
-  Map<String, Long> getToSequence();
 
   enum Status {
     RUNNING,

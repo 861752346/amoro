@@ -23,12 +23,16 @@ import com.netease.arctic.server.utils.Configurations;
 import com.netease.arctic.spark.ArcticSparkCatalog;
 import com.netease.arctic.spark.ArcticSparkExtensions;
 import com.netease.arctic.spark.ArcticSparkSessionCatalog;
+import java.util.ArrayList;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.iceberg.relocated.com.google.common.collect.Maps;
 import org.apache.iceberg.spark.SparkCatalog;
 import org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.paimon.options.CatalogOptions.*;
 
 public class SparkContextUtil {
 
@@ -50,6 +54,28 @@ public class SparkContextUtil {
         for (String key : properties.keySet()) {
           String property = properties.get(key);
           sparkConf.put("spark.sql.catalog." + catalog + "." + key, property);
+        }
+      } else if ("paimon".equalsIgnoreCase(connector)) {
+        sparkConf.put("spark.sql.catalog." + catalog, org.apache.paimon.spark.SparkCatalog.class.getName());
+
+        Map<String, String> properties =
+            TerminalSessionFactory.SessionConfigOptions.getCatalogProperties(sessionConfig, catalog);
+
+        List<String> supportCatalogProperties = new ArrayList<>();
+        supportCatalogProperties.add(WAREHOUSE.key());
+        supportCatalogProperties.add(METASTORE.key());
+        supportCatalogProperties.add(URI.key());
+        supportCatalogProperties.add(TABLE_TYPE.key());
+        supportCatalogProperties.add(LOCK_ENABLED.key());
+        supportCatalogProperties.add(LOCK_CHECK_MAX_SLEEP.key());
+        supportCatalogProperties.add(LOCK_ACQUIRE_TIMEOUT.key());
+        supportCatalogProperties.add(FS_ALLOW_HADOOP_FALLBACK.key());
+
+        for (String key : supportCatalogProperties) {
+          String property = properties.get(key);
+          if (StringUtils.isNotBlank(property)) {
+            sparkConf.put("spark.sql.catalog." + catalog + "." + key, property);
+          }
         }
       } else {
         String sparkCatalogPrefix = "spark.sql.catalog." + catalog;

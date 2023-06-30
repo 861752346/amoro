@@ -25,9 +25,9 @@ import com.netease.arctic.server.optimizing.scan.TableFileScanHelper;
 import com.netease.arctic.server.optimizing.scan.UnkeyedTableFileScanHelper;
 import com.netease.arctic.server.table.KeyedTableSnapshot;
 import com.netease.arctic.server.table.TableRuntime;
-import com.netease.arctic.server.table.TableSnapshot;
-import com.netease.arctic.server.utils.IcebergTableUtils;
 import com.netease.arctic.table.ArcticTable;
+import com.netease.arctic.table.MixedTable;
+import com.netease.arctic.utils.TablePropertyUtil;
 import com.netease.arctic.utils.TableTypeUtil;
 import org.apache.iceberg.PartitionSpec;
 import org.apache.iceberg.StructLike;
@@ -48,7 +48,7 @@ public class OptimizingEvaluator {
 
   protected final ArcticTable arcticTable;
   protected final TableRuntime tableRuntime;
-  protected final TableSnapshot currentSnapshot;
+  protected final MixedTable.MixedSnapshot currentSnapshot;
   protected boolean isInitialized = false;
 
   protected Map<String, PartitionEvaluator> partitionPlanMap = Maps.newHashMap();
@@ -56,7 +56,7 @@ public class OptimizingEvaluator {
   public OptimizingEvaluator(TableRuntime tableRuntime, ArcticTable table) {
     this.tableRuntime = tableRuntime;
     this.arcticTable = table;
-    this.currentSnapshot = IcebergTableUtils.getSnapshot(table, tableRuntime);
+    this.currentSnapshot = (MixedTable.MixedSnapshot) tableRuntime.getCurrentSnapshot();
   }
 
   public ArcticTable getArcticTable() {
@@ -71,14 +71,24 @@ public class OptimizingEvaluator {
     long startTime = System.currentTimeMillis();
     TableFileScanHelper tableFileScanHelper;
     if (TableTypeUtil.isIcebergTableFormat(arcticTable)) {
-      tableFileScanHelper = new IcebergTableFileScanHelper(arcticTable.asUnkeyedTable(), currentSnapshot.snapshotId());
+      tableFileScanHelper = new IcebergTableFileScanHelper(arcticTable.asUnkeyedTable(), currentSnapshot.getBaseSnapshot());
     } else {
       if (arcticTable.isUnkeyedTable()) {
         tableFileScanHelper =
-            new UnkeyedTableFileScanHelper(arcticTable.asUnkeyedTable(), currentSnapshot.snapshotId());
+            new UnkeyedTableFileScanHelper(arcticTable.asUnkeyedTable(), currentSnapshot.getBaseSnapshot());
       } else {
+        StructLikeMap<Long> partitionOptimizedSequence =
+            TablePropertyUtil.getPartitionOptimizedSequence(arcticTable.asKeyedTable());
+        StructLikeMap<Long> legacyPartitionMaxTransactionId =
+            TablePropertyUtil.getLegacyPartitionMaxTransactionId(arcticTable.asKeyedTable());
         tableFileScanHelper =
-            new KeyedTableFileScanHelper(arcticTable.asKeyedTable(), ((KeyedTableSnapshot) currentSnapshot));
+            new KeyedTableFileScanHelper(arcticTable.asKeyedTable(),
+                new KeyedTableSnapshot(
+                    currentSnapshot.getBaseSnapshot(),
+                    currentSnapshot.getChangeSnapshot(),
+                    partitionOptimizedSequence,
+                    legacyPartitionMaxTransactionId
+                ));
       }
     }
     tableFileScanHelper.withPartitionFilter(getPartitionFilter());

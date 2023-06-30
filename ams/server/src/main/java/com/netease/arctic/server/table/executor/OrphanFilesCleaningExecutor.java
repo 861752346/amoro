@@ -72,14 +72,15 @@ public class OrphanFilesCleaningExecutor extends BaseTableExecutor {
 
   @Override
   protected boolean enabled(TableRuntime tableRuntime) {
-    return tableRuntime.getTableConfiguration().isCleanOrphanEnabled();
+    return tableRuntime.getTableConfiguration().isCleanOrphanEnabled()  &&
+        loadTable(tableRuntime).originalTable() instanceof ArcticTable;
   }
 
   @Override
   public void execute(TableRuntime tableRuntime) {
     try {
       LOG.info("{} clean orphan files", tableRuntime.getTableIdentifier());
-      ArcticTable arcticTable = loadTable(tableRuntime);
+      ArcticTable arcticTable = (ArcticTable) loadTable(tableRuntime).originalTable();
 
       boolean needOrphanClean = CompatiblePropertyUtil.propertyAsBoolean(
           arcticTable.properties(),
@@ -99,7 +100,7 @@ public class OrphanFilesCleaningExecutor extends BaseTableExecutor {
       // clear data files
       cleanContentFiles(arcticTable, System.currentTimeMillis() - keepTime);
 
-      arcticTable = loadTable(tableRuntime);
+      arcticTable = (ArcticTable) loadTable(tableRuntime).originalTable();
       // clear metadata files
       cleanMetadata(arcticTable, System.currentTimeMillis() - keepTime);
     } catch (Throwable t) {

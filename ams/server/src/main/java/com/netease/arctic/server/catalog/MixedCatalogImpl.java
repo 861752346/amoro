@@ -6,8 +6,10 @@ import com.netease.arctic.catalog.MixedTables;
 import com.netease.arctic.server.persistence.mapper.TableMetaMapper;
 import com.netease.arctic.server.table.ServerTableIdentifier;
 import com.netease.arctic.server.table.TableMetadata;
+import com.netease.arctic.table.ATable;
 import com.netease.arctic.table.ArcticTable;
 
+import com.netease.arctic.table.MixedTable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,10 +59,10 @@ public class MixedCatalogImpl extends InternalCatalog {
   }
 
   @Override
-  public ArcticTable loadTable(String database, String tableName) {
+  public ATable<ArcticTable> loadTable(String database, String tableName) {
     TableMetadata tableMetadata = getAs(TableMetaMapper.class, mapper ->
         mapper.selectTableMetaByName(getMetadata().getCatalogName(), database, tableName));
-    return tableMetadata == null ? null : tables.loadTableByMeta(tableMetadata.buildTableMeta());
+    return tableMetadata == null ? null : new MixedTable(tables.loadTableByMeta(tableMetadata.buildTableMeta()));
   }
 
   @Override

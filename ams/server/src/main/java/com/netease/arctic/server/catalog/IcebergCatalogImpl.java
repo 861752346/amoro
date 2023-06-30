@@ -3,14 +3,16 @@ package com.netease.arctic.server.catalog;
 import com.netease.arctic.ams.api.CatalogMeta;
 import com.netease.arctic.ams.api.TableIdentifier;
 import com.netease.arctic.catalog.IcebergCatalogWrapper;
+import com.netease.arctic.table.ATable;
 import com.netease.arctic.table.ArcticTable;
+import com.netease.arctic.table.MixedTable;
 import com.netease.arctic.utils.CatalogUtil;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class IcebergCatalogImpl extends ExternalCatalog {
+public class IcebergCatalogImpl extends ExternalCatalog<ArcticTable> {
 
   private final IcebergCatalogWrapper catalogWrapper;
 
@@ -55,8 +57,9 @@ public class IcebergCatalogImpl extends ExternalCatalog {
   }
 
   @Override
-  public ArcticTable loadTable(String database, String tableName) {
-    return catalogWrapper.loadTable(com.netease.arctic.table.TableIdentifier.of(catalogWrapper.name(), database,
-        tableName));
+  public ATable<ArcticTable> loadTable(String database, String tableName) {
+    return new MixedTable(catalogWrapper.loadTable(com.netease.arctic.table.TableIdentifier.of(catalogWrapper.name(),
+        database,
+        tableName)).asUnkeyedTable());
   }
 }

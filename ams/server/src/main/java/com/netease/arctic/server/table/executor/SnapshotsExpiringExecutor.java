@@ -26,6 +26,7 @@ import com.netease.arctic.server.utils.HiveLocationUtil;
 import com.netease.arctic.server.utils.IcebergTableUtils;
 import com.netease.arctic.table.ArcticTable;
 import com.netease.arctic.table.KeyedTable;
+import com.netease.arctic.table.MixedTable;
 import com.netease.arctic.table.TableProperties;
 import com.netease.arctic.table.UnkeyedTable;
 import com.netease.arctic.utils.CompatiblePropertyUtil;
@@ -81,13 +82,14 @@ public class SnapshotsExpiringExecutor extends BaseTableExecutor {
 
   @Override
   protected boolean enabled(TableRuntime tableRuntime) {
-    return tableRuntime.getTableConfiguration().isExpireSnapshotEnabled();
+    return tableRuntime.getTableConfiguration().isExpireSnapshotEnabled() &&
+        loadTable(tableRuntime).originalTable() instanceof ArcticTable;
   }
 
   @Override
   public void execute(TableRuntime tableRuntime) {
     try {
-      ArcticTable arcticTable = loadTable(tableRuntime);
+      ArcticTable arcticTable = (ArcticTable) loadTable(tableRuntime).originalTable();
       boolean needClean = CompatiblePropertyUtil.propertyAsBoolean(
           arcticTable.properties(),
           TableProperties.ENABLE_TABLE_EXPIRE,
@@ -215,7 +217,7 @@ public class SnapshotsExpiringExecutor extends BaseTableExecutor {
    */
   public static long fetchOptimizingSnapshotTime(UnkeyedTable table, TableRuntime tableRuntime) {
     if (tableRuntime.getOptimizingStatus() != OptimizingStatus.IDLE) {
-      long currentSnapshotId = tableRuntime.getCurrentSnapshotId();
+      long currentSnapshotId = ((MixedTable.MixedSnapshot)tableRuntime.getCurrentSnapshot()).getBaseSnapshot();
       for (Snapshot snapshot : table.snapshots()) {
         if (snapshot.snapshotId() == currentSnapshotId) {
           return snapshot.timestampMillis();

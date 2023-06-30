@@ -82,15 +82,7 @@ public class OptimizingPlanner extends OptimizingEvaluator {
   }
 
   public long getTargetSnapshotId() {
-    return currentSnapshot.snapshotId();
-  }
-
-  public long getTargetChangeSnapshotId() {
-    if (currentSnapshot instanceof KeyedTableSnapshot) {
-      return ((KeyedTableSnapshot) currentSnapshot).changeSnapshotId();
-    } else {
-      return ArcticServiceConstants.INVALID_SNAPSHOT_ID;
-    }
+    return currentSnapshot.getBaseSnapshot();
   }
 
   @Override

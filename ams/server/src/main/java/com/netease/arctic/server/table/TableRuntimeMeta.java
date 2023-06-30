@@ -4,6 +4,7 @@ import com.netease.arctic.server.optimizing.OptimizingProcess;
 import com.netease.arctic.server.optimizing.OptimizingStatus;
 import com.netease.arctic.server.optimizing.OptimizingType;
 
+import com.netease.arctic.table.ATable;
 import java.util.Map;
 
 public class TableRuntimeMeta {
@@ -11,10 +12,8 @@ public class TableRuntimeMeta {
   private String catalogName;
   private String dbName;
   private String tableName;
-  private long currentSnapshotId;
-  private long lastOptimizedSnapshotId;
-  private long lastOptimizedChangeSnapshotId;
-  private long currentChangeSnapshotId;
+  private ATable.Snapshot currentSnapshot;
+  private ATable.Snapshot lastOptimizedSnapshot;
   private long lastMajorOptimizingTime;
   private long lastMinorOptimizingTime;
   private long lastFullOptimizingTime;
@@ -25,8 +24,7 @@ public class TableRuntimeMeta {
   private long optimizingProcessId = 0;
   private OptimizingProcess.Status processStatus;
   private OptimizingType optimizingType;
-  private long targetSnapshotId;
-  private long targetChangeSnapshotId;
+  private ATable.Snapshot fromSnapshot;
   private long planTime;
   private long endTime;
   private String failReason;
@@ -53,24 +51,12 @@ public class TableRuntimeMeta {
     return tableRuntime;
   }
 
-  public long getTargetSnapshotId() {
-    return targetSnapshotId;
+  public ATable.Snapshot getFromSnapshot() {
+    return fromSnapshot;
   }
 
   public OptimizingType getOptimizingType() {
     return optimizingType;
-  }
-
-  public long getLastOptimizedSnapshotId() {
-    return lastOptimizedSnapshotId;
-  }
-
-  public long getLastOptimizedChangeSnapshotId() {
-    return lastOptimizedChangeSnapshotId;
-  }
-
-  public long getTargetChangeSnapshotId() {
-    return targetChangeSnapshotId;
   }
 
   public long getTableId() {
@@ -89,13 +75,6 @@ public class TableRuntimeMeta {
     return tableName;
   }
 
-  public long getCurrentSnapshotId() {
-    return currentSnapshotId;
-  }
-
-  public long getCurrentChangeSnapshotId() {
-    return currentChangeSnapshotId;
-  }
 
   public long getLastMajorOptimizingTime() {
     return lastMajorOptimizingTime;
@@ -165,24 +144,20 @@ public class TableRuntimeMeta {
     this.tableName = tableName;
   }
 
-  public void setCurrentSnapshotId(long currentSnapshotId) {
-    this.currentSnapshotId = currentSnapshotId;
+  public ATable.Snapshot getCurrentSnapshot() {
+    return currentSnapshot;
   }
 
-  public void setLastOptimizedSnapshotId(long lastOptimizedSnapshotId) {
-    this.lastOptimizedSnapshotId = lastOptimizedSnapshotId;
+  public void setCurrentSnapshot(ATable.Snapshot currentSnapshot) {
+    this.currentSnapshot = currentSnapshot;
   }
 
-  public void setLastOptimizedChangeSnapshotId(long lastOptimizedChangeSnapshotId) {
-    this.lastOptimizedChangeSnapshotId = lastOptimizedChangeSnapshotId;
+  public ATable.Snapshot getLastOptimizedSnapshot() {
+    return lastOptimizedSnapshot;
   }
 
-  public void setTargetChangeSnapshotId(long targetChangeSnapshotId) {
-    this.targetChangeSnapshotId = targetChangeSnapshotId;
-  }
-
-  public void setCurrentChangeSnapshotId(long currentChangeSnapshotId) {
-    this.currentChangeSnapshotId = currentChangeSnapshotId;
+  public void setLastOptimizedSnapshot(ATable.Snapshot lastOptimizedSnapshot) {
+    this.lastOptimizedSnapshot = lastOptimizedSnapshot;
   }
 
   public void setLastMajorOptimizingTime(long lastMajorOptimizingTime) {
@@ -239,10 +214,6 @@ public class TableRuntimeMeta {
 
   public void setOptimizingType(OptimizingType optimizingType) {
     this.optimizingType = optimizingType;
-  }
-
-  public void setTargetSnapshotId(long targetSnapshotId) {
-    this.targetSnapshotId = targetSnapshotId;
   }
 
   public void setPlanTime(long planTime) {

@@ -41,6 +41,7 @@ import com.netease.arctic.server.table.TableManager;
 import com.netease.arctic.server.table.TableRuntime;
 import com.netease.arctic.server.table.TableRuntimeMeta;
 import com.netease.arctic.server.utils.Configurations;
+import com.netease.arctic.table.ATable;
 import com.netease.arctic.table.ArcticTable;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -227,7 +228,7 @@ public class DefaultOptimizingService extends DefaultResourceManager
     }
 
     @Override
-    public void handleTableAdded(ArcticTable table, TableRuntime tableRuntime) {
+    public void handleTableAdded(ATable table, TableRuntime tableRuntime) {
       getOptionalQueueByGroup(tableRuntime.getOptimizerGroup()).ifPresent(q -> q.refreshTable(tableRuntime));
     }
 

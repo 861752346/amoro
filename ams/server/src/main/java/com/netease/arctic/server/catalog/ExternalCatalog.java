@@ -4,7 +4,7 @@ import com.netease.arctic.ams.api.CatalogMeta;
 import com.netease.arctic.server.persistence.mapper.TableMetaMapper;
 import com.netease.arctic.server.table.ServerTableIdentifier;
 
-public abstract class ExternalCatalog extends ServerCatalog {
+public abstract class ExternalCatalog<T> extends ServerCatalog<T> {
 
   protected ExternalCatalog(CatalogMeta metadata) {
     super(metadata);

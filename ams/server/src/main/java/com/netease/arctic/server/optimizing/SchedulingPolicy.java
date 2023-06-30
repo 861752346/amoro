@@ -44,8 +44,7 @@ public class SchedulingPolicy {
     try {
       return tableRuntimeMap.values().stream()
           .filter(tableRuntime -> tableRuntime.getOptimizingStatus() == OptimizingStatus.PENDING &&
-              (tableRuntime.getLastOptimizedSnapshotId() != tableRuntime.getCurrentSnapshotId() ||
-                  tableRuntime.getLastOptimizedChangeSnapshotId() != tableRuntime.getCurrentChangeSnapshotId()))
+              !tableRuntime.getCurrentSnapshot().equals(tableRuntime.getLastOptimizedSnapshot()))
           .sorted(tableSorter)
           .collect(Collectors.toList());
     } finally {

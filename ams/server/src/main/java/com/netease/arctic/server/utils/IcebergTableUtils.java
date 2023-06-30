@@ -26,6 +26,7 @@ import com.netease.arctic.server.table.KeyedTableSnapshot;
 import com.netease.arctic.server.table.TableRuntime;
 import com.netease.arctic.server.table.TableSnapshot;
 import com.netease.arctic.table.ArcticTable;
+import com.netease.arctic.table.MixedTable;
 import com.netease.arctic.table.UnkeyedTable;
 import com.netease.arctic.utils.TableFileUtil;
 import com.netease.arctic.utils.TablePropertyUtil;
@@ -50,16 +51,16 @@ public class IcebergTableUtils {
   }
 
   public static TableSnapshot getSnapshot(ArcticTable arcticTable, TableRuntime tableRuntime) {
-    tableRuntime.refresh(arcticTable);
+    // tableRuntime.refresh(arcticTable);
     if (arcticTable.isUnkeyedTable()) {
-      return new BasicTableSnapshot(tableRuntime.getCurrentSnapshotId());
+      return new BasicTableSnapshot(((MixedTable.MixedSnapshot)tableRuntime.getCurrentSnapshot()).getBaseSnapshot());
     } else {
       StructLikeMap<Long> partitionOptimizedSequence =
           TablePropertyUtil.getPartitionOptimizedSequence(arcticTable.asKeyedTable());
       StructLikeMap<Long> legacyPartitionMaxTransactionId =
           TablePropertyUtil.getLegacyPartitionMaxTransactionId(arcticTable.asKeyedTable());
-      return new KeyedTableSnapshot(tableRuntime.getCurrentSnapshotId(),
-          tableRuntime.getCurrentChangeSnapshotId(),
+      return new KeyedTableSnapshot(((MixedTable.MixedSnapshot)tableRuntime.getCurrentSnapshot()).getBaseSnapshot(),
+          ((MixedTable.MixedSnapshot)tableRuntime.getCurrentSnapshot()).getChangeSnapshot(),
           partitionOptimizedSequence,
           legacyPartitionMaxTransactionId);
     }

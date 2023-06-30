@@ -402,6 +402,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!--        paimon-->
+        <dependency>
+            <groupId>org.apache.paimon</groupId>
+            <artifactId>paimon-spark-3.1</artifactId>
+            <version>0.5-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
     <build>

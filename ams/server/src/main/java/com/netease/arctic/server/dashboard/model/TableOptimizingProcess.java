@@ -2,6 +2,7 @@ package com.netease.arctic.server.dashboard.model;
 
 import com.netease.arctic.server.optimizing.MetricsSummary;
 import com.netease.arctic.server.optimizing.OptimizingType;
+import com.netease.arctic.table.ATable;
 
 public class TableOptimizingProcess {
 
@@ -10,8 +11,7 @@ public class TableOptimizingProcess {
   private String catalogName;
   private String dbName;
   private String tableName;
-  private Long targetSnapshotId;
-  private Long targetChangeSnapshotId;
+  private ATable.Snapshot fromSnapshot;
   private String status;
   private OptimizingType optimizingType;
   private long planTime;
@@ -62,12 +62,12 @@ public class TableOptimizingProcess {
     this.tableName = tableName;
   }
 
-  public Long getTargetSnapshotId() {
-    return targetSnapshotId;
+  public ATable.Snapshot getFromSnapshot() {
+    return fromSnapshot;
   }
 
-  public void setTargetSnapshotId(Long targetSnapshotId) {
-    this.targetSnapshotId = targetSnapshotId;
+  public void setFromSnapshot(ATable.Snapshot fromSnapshot) {
+    this.fromSnapshot = fromSnapshot;
   }
 
   public String getStatus() {
@@ -116,13 +116,5 @@ public class TableOptimizingProcess {
 
   public void setSummary(MetricsSummary summary) {
     this.summary = summary;
-  }
-
-  public Long getTargetChangeSnapshotId() {
-    return targetChangeSnapshotId;
-  }
-
-  public void setTargetChangeSnapshotId(Long targetChangeSnapshotId) {
-    this.targetChangeSnapshotId = targetChangeSnapshotId;
   }
 }
