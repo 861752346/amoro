@@ -11,6 +11,7 @@ import com.netease.arctic.utils.CatalogUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.iceberg.Table;
 
 public class IcebergCatalogImpl extends ExternalCatalog<ArcticTable> {
 
