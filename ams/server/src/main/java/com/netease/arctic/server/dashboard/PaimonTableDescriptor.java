@@ -19,7 +19,9 @@
 package com.netease.arctic.server.dashboard;
 
 import com.netease.arctic.ams.api.TableFormat;
+import com.netease.arctic.server.dashboard.model.AMSColumnInfo;
 import com.netease.arctic.server.dashboard.model.AMSDataFileInfo;
+import com.netease.arctic.server.dashboard.model.AMSPartitionField;
 import com.netease.arctic.server.dashboard.model.DDLInfo;
 import com.netease.arctic.server.dashboard.model.PartitionBaseInfo;
 import com.netease.arctic.server.dashboard.model.PartitionFileBaseInfo;
@@ -27,7 +29,10 @@ import com.netease.arctic.server.dashboard.model.ServerTableMeta;
 import com.netease.arctic.server.dashboard.model.TransactionsOfTable;
 import com.netease.arctic.table.ATable;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.paimon.table.Table;
 
 public class PaimonTableDescriptor implements FormatTableDescriptor{
@@ -38,7 +43,38 @@ public class PaimonTableDescriptor implements FormatTableDescriptor{
 
   @Override
   public ServerTableMeta getTableDetail(ATable<?> aTable) {
-    return null;
+    Table table = getTable(aTable);
+
+    ServerTableMeta serverTableMeta = new ServerTableMeta();
+    serverTableMeta.setTableIdentifier(aTable.id());
+    serverTableMeta.setTableType(TableFormat.PAIMON.name());
+
+    //schema
+    serverTableMeta.setSchema(
+        table.rowType().getFields().stream()
+            .map(s -> new AMSColumnInfo(s.name(), s.type().asSQLString(), s.description()))
+            .collect(Collectors.toList())
+    );
+
+    //pk
+    Set<String> primaryKeyNames = new HashSet<>(table.primaryKeys());
+    List<AMSColumnInfo> primaryKeys = serverTableMeta.getSchema()
+        .stream()
+        .filter(s -> primaryKeyNames.contains(s.getField()))
+        .collect(Collectors.toList());
+    serverTableMeta.setPkList(primaryKeys);
+
+    //partition
+    List<AMSPartitionField> partitionFields = table.partitionKeys().stream()
+        .map(partition -> new AMSPartitionField(partition, null, null, null, null))
+        .collect(Collectors.toList());
+    serverTableMeta.setPartitionColumnList(partitionFields);
+
+    //properties
+    serverTableMeta.setProperties(table.options());
+
+
+    return serverTableMeta;
   }
 
   @Override
