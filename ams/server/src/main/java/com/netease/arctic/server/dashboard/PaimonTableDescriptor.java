@@ -47,7 +47,7 @@ public class PaimonTableDescriptor implements FormatTableDescriptor{
 
     ServerTableMeta serverTableMeta = new ServerTableMeta();
     serverTableMeta.setTableIdentifier(aTable.id());
-    serverTableMeta.setTableType(TableFormat.PAIMON.name());
+    serverTableMeta.setTableType(aTable.format().name());
 
     //schema
     serverTableMeta.setSchema(
